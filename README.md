@@ -11,6 +11,47 @@ These next sections will be filled in with info as we begin the project.
 
 ### Installing
 
+Install pyenv
+
+```https://github.com/pyenv/pyenv#installation```
+
+Install python version 3.7.4
+
+```pyenv install 3.7.4```
+
+Install your distro's postgresql (or configure config.py for the location of your postgres server)
+
+```sudo apt-get install postgresql postgresql-contrib```
+
+Install your distro's equivalent of [libpq-dev](https://packages.debian.org/sid/libpq-dev)
+
+```sudo apt-get install libpq-dev```
+
+Initialize your python environment
+
+```python3.7 -m venv env```
+
+Source your env
+
+```source env/bin/activate```
+
+Install requirements
+
+```pip install -r requirements.txt```
+
+Initialize the config file and edit it for your settings
+
+```cp config.py.example config.py```
+
+```vim config.py```
+
+Uncomment the create db line from app.py and run app.py
+
+```python app.py```
+
+Begin scraping data
+
+```python scrape.py```
 
 ## Running the tests
 

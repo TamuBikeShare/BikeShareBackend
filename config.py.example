@@ -1,0 +1,5 @@
+POSTGRES_HOST = 'url'
+POSTGRES_USER = 'user'
+POSTGRES_PASSWORD = '123'
+POSTGRES_DB = 'veoride'
+APIKEY = ''
