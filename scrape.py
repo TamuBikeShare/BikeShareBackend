@@ -19,7 +19,6 @@ class Scraper:
 
     def main(self):
         try:
-            print(type(self.lastran))
             self.scrapebikes(self.conn, self.cur)
             self.scrapetrips(self.lastran, self.conn, self.cur)
             while True: 
