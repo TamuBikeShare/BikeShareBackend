@@ -1,6 +1,8 @@
 from flask import Flask
+from flask import jsonify
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.dialects.postgresql import JSON
+from flask_marshmallow import Marshmallow
 import config
 
 app = Flask(__name__)
@@ -11,9 +13,9 @@ app.config['SQLALCHEMY_DATABASE_URI'] = DB_URL
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = True # silence the deprecation warning
 
 db = SQLAlchemy(app)
+ma = Marshmallow(app)
 
-
-class Bikes(db.Model):
+class Bike(db.Model):
     __tablename__ = 'bikes'
 
     id = db.Column(db.Integer, primary_key=True)
@@ -27,7 +29,11 @@ class Bikes(db.Model):
     linger_time_hours = db.Column(db.Float)
     linger_time_days = db.Column(db.Float)
 
-class Trips(db.Model):
+class BikeSchema(ma.Schema):
+    class Meta:
+        fields = ("id", "lat", "lon", "isReserved", "isDisabled", "createdAt", "lastSeenAtPos", "linger_time_minutes", "linger_time_hours", "linger_time_days")
+
+class Trip(db.Model):
     __tablename__ = 'trips'
 
     id = db.Column(db.Integer, primary_key=True)
@@ -38,11 +44,17 @@ class Trips(db.Model):
     end_latitude = db.Column(db.Float)
     end_longitude = db.Column(db.Float)
 
-db.create_all()
+#db.create_all()
+bikes_schema = BikeSchema(many=True)
 
 @app.route('/')
 def hello():
-    return "Hello World!"
+    bikes = Bike.query.all()
+    if bikes is None:
+        response = {'message': 'user does not exist'}
+        return jsonify(response), 404
+    result = bikes_schema.dumps(bikes)
+    return jsonify(result)
 
 if __name__ == '__main__':
-    app.run()
+    app.run(host='0.0.0.0',debug=True)
