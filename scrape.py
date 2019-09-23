@@ -6,6 +6,7 @@ import time
 import threading
 import signal
 import sys
+import datetime
 
 class Scraper:
     def __init__(self):
@@ -100,7 +101,7 @@ class Scraper:
         biketimer.start()
 
     def scrapetrips(self, starttime, nexttime, conn, cur):
-        print('Strarting trips scrape at {}'.format(str(datetime.datetime.now()))
+        print('Strarting trips scrape at {}'.format(str(datetime.datetime.now())))
         payload = {'format': 'json', 'end_time_gte': starttime, 'fields': 'start_time,end_time,start_latitude,start_longitude,end_latitude,end_longitude', 'authorization': self.apikey}
         req = requests.get('https://nodes.geoservices.tamu.edu/api/veoride/trips/', params=payload)
         print('Finished trips scrape at {}'.format(str(datetime.datetime.now())))
