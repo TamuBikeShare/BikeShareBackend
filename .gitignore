@@ -2,3 +2,4 @@ env/
 config.py
 __pycache__
 error.log
+*.swp
