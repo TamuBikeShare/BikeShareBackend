@@ -69,7 +69,7 @@ class Scraper:
 
     def scrapebikes(self, conn, cur):
         """Scrape bike information"""
-        print('Scraping bikes')
+        print('Scraping bikes at {}'.format(str(datetime.datetime.now())))
         payload = {'format': 'json', 'fields': 'lat,lon,isReserved,isDisabled,createdAt,lastSeenAtPos,linger_time_minutes,linger_time_hours,linger_time_days', 'authorization': self.apikey}
         req = requests.get('http://nodes.geoservices.tamu.edu/api/veoride/bikes/', params=payload)
         if req.status_code != 200 or not req.json():
@@ -81,7 +81,7 @@ class Scraper:
             biketimer.daemon = True
             biketimer.start()
         else: 
-            print('Finished scraping bikes')
+            print('Finished scraping bikes at {}'.format(str(datetime.datetime.now())))
             self.insertbikes(req, conn, cur)
 
     def insertbikes(self, request, conn, cur):
@@ -100,10 +100,10 @@ class Scraper:
         biketimer.start()
 
     def scrapetrips(self, starttime, nexttime, conn, cur):
-        print('Strarting trips scrape')
+        print('Strarting trips scrape at {}'.format(str(datetime.datetime.now()))
         payload = {'format': 'json', 'end_time_gte': starttime, 'fields': 'start_time,end_time,start_latitude,start_longitude,end_latitude,end_longitude', 'authorization': self.apikey}
         req = requests.get('https://nodes.geoservices.tamu.edu/api/veoride/trips/', params=payload)
-        print('Finished trips scrape')
+        print('Finished trips scrape at {}'.format(str(datetime.datetime.now())))
         if not req.json():
             nexttime = nexttime * 1.5
             print('No recent trips, waiting {} minutes before trying again'.format(nexttime/60))
@@ -122,7 +122,7 @@ class Scraper:
         conn.commit()
         print('Finished trips insert')
         self.lastran = int(time.time() * 1000)
-        triptimer = threading.Timer(1800.0, self.scrapetrips, [self.lastran, 0, conn, cur])
+        triptimer = threading.Timer(1800.0, self.scrapetrips, [self.lastran, 1800, conn, cur])
         triptimer.daemon = True
         triptimer.start()
 
