@@ -15,6 +15,7 @@ class Scraper:
         self.user = config.POSTGRES_USER
         self.password = config.POSTGRES_PASSWORD
         self.apikey = config.APIKEY
+        self.proxy_pass = config.PROXY_PASS
         self.lastran = config.LASTRAN
         self.conn, self.cur = self.connect()
 
@@ -31,13 +32,14 @@ class Scraper:
         print("\nAttempting to close connections and quit gracefully")
         self.disconnect(self.conn, self.cur)
         configfile = open('config.py', 'w')
-        configfile.write("POSTGRES_HOST = '{}'\nPOSTGRES_DB = '{}'\nPOSTGRES_USER = '{}'\nPOSTGRES_PASSWORD = '{}'\nAPIKEY = '{}'\nLASTRAN = {}"
+        configfile.write("POSTGRES_HOST = '{}'\nPOSTGRES_DB = '{}'\nPOSTGRES_USER = '{}'\nPOSTGRES_PASSWORD = '{}'\nAPIKEY = '{}'\nPROXY_PASS = {}\nLASTRAN = {}"
                 .format(
                     self.host,
                     self.db,
                     self.user,
                     self.password,
                     self.apikey,
+                    self.proxy_pass,
                     self.lastran
                     )
                 )

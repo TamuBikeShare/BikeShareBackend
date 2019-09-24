@@ -72,7 +72,7 @@ class TripSchema(ma.ModelSchema):
 bikes_schema = BikeSchema(many=True)
 trips_schema = TripSchema(many=True)
 
-@app.route('/bikes')
+@app.route(config.PROXY_PASS + '/bikes')
 def bikes():
     bikes = Bike.query.with_entities(Bike.lat, Bike.lon, Bike.linger_time_hours).filter(Bike.linger_time_hours < 150)
     if bikes is None:
@@ -96,7 +96,7 @@ def bikes():
         yield '{"type": "Feature", "geometry": {"type": "Point", "coordinates": [' + str(point[1]) + ',' + str(point[0]) + ']}, "properties": {"linger_time_hours": ' + str(point[2]) + '}}' + ']}'
     return Response(generate(), mimetype='application/json', headers={"Access-Control-Allow-Origin": "*"})
 
-@app.route('/trips/<string:from_where>')
+@app.route(config.PROXY_PASS + '/trips/<string:from_where>')
 def trip(from_where):
     #from_where = 'origin'
     lastday = int(time.time() * 1000) - 86400000
