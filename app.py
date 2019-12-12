@@ -7,6 +7,7 @@ from flask_marshmallow import Marshmallow
 from marshmallow import post_dump, pre_dump
 import time
 import config
+import os
 
 app = Flask(__name__)
 
@@ -18,6 +19,7 @@ app.config['JSON_SORT_KEYS'] = False
 
 db = SQLAlchemy(app)
 ma = Marshmallow(app)
+lastdeploy = 1569450623
 
 class Bike(db.Model):
     __tablename__ = 'bikes'
@@ -96,14 +98,13 @@ def bikes():
         yield '{"type": "Feature", "geometry": {"type": "Point", "coordinates": [' + str(point[1]) + ',' + str(point[0]) + ']}, "properties": {"linger_time_hours": ' + str(point[2]) + '}}' + ']}'
     return Response(generate(), mimetype='application/json', headers={"Access-Control-Allow-Origin": "*"})
 
-@app.route(config.PROXY_PASS + '/trips/<string:from_where>')
-def trip(from_where):
+@app.route(config.PROXY_PASS + '/trips/<string:from_where>/<int:from_time>/<int:to_time>')
+def trip(from_where, from_time, to_time):
     #from_where = 'origin'
-    lastday = int(time.time() * 1000) - 86400000
     if from_where == 'origin':
-        trips = Trip.query.with_entities(Trip.start_latitude.label('lat'), Trip.start_longitude.label('lon')).filter(Trip.end_time > lastday, Trip.start_latitude != None)
+        trips = Trip.query.with_entities(Trip.start_latitude.label('lat'), Trip.start_longitude.label('lon')).filter(Trip.end_time > from_time, Trip.end_time < to_time, Trip.start_latitude != None)
     elif from_where == 'destination':
-        trips = Trip.query.with_entities(Trip.end_latitude.label('lat'), Trip.end_longitude.label('lon')).filter(Trip.end_time > lastday, Trip.start_latitude != None)
+        trips = Trip.query.with_entities(Trip.end_latitude.label('lat'), Trip.end_longitude.label('lon')).filter(Trip.end_time > from_time, Trip.end_time < to_time, Trip.start_latitude != None)
     if trips is None:
         response = {'message': 'No trips'}
         return jsonify(response), 404

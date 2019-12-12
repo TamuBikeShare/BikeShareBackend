@@ -7,6 +7,7 @@ import threading
 import signal
 import sys
 import datetime
+from collections import defaultdict
 
 class Scraper:
     def __init__(self):
@@ -15,6 +16,7 @@ class Scraper:
         self.user = config.POSTGRES_USER
         self.password = config.POSTGRES_PASSWORD
         self.apikey = config.APIKEY
+        self.deploykey = config.DEPLOYKEY
         self.proxy_pass = config.PROXY_PASS
         self.lastran = config.LASTRAN
         self.conn, self.cur = self.connect()
@@ -23,6 +25,7 @@ class Scraper:
         try:
             self.scrapebikes(self.conn, self.cur)
             self.scrapetrips(self.lastran, 1800, self.conn, self.cur)
+            # self.backtrackpos(self.conn,self.cur)
             while True: 
                     time.sleep(1)
         except KeyboardInterrupt:
@@ -32,13 +35,14 @@ class Scraper:
         print("\nAttempting to close connections and quit gracefully")
         self.disconnect(self.conn, self.cur)
         configfile = open('config.py', 'w')
-        configfile.write("POSTGRES_HOST = '{}'\nPOSTGRES_DB = '{}'\nPOSTGRES_USER = '{}'\nPOSTGRES_PASSWORD = '{}'\nAPIKEY = '{}'\nPROXY_PASS = {}\nLASTRAN = {}"
+        configfile.write("POSTGRES_HOST = '{}'\nPOSTGRES_DB = '{}'\nPOSTGRES_USER = '{}'\nPOSTGRES_PASSWORD = '{}'\nAPIKEY = '{}'\nDEPLOYKEY = '{}'\nPROXY_PASS = '{}'\nLASTRAN = {}"
                 .format(
                     self.host,
                     self.db,
                     self.user,
                     self.password,
                     self.apikey,
+                    self.deploykey,
                     self.proxy_pass,
                     self.lastran
                     )
@@ -91,6 +95,7 @@ class Scraper:
         print('Starting bikes insert')
         sql = "DELETE FROM bikes"
         cur.execute(sql)
+        conn.commit()
         data = request.json()
         columns = data[0].keys()
         query = "INSERT INTO bikes (\"{}\") VALUES %s".format('","'.join(columns))
@@ -98,13 +103,22 @@ class Scraper:
         execute_values(cur, query, values)
         conn.commit()
         print('Finished bikes insert')
-        biketimer = threading.Timer(600.0, self.scrapebikes, [conn, cur])
+        curtime = int(time.time() * 1000)
+        for i in range(len(data)):
+            data[i]['time'] = curtime
+        columns = data[0].keys()
+        query = "INSERT INTO historical_bikes (\"{}\") VALUES %s".format('","'.join(columns))
+        values = [[value for value in bike.values()] for bike in data]
+        execute_values(cur, query, values)
+        conn.commit()
+        print('Finished historical_bikes insert')
+        biketimer = threading.Timer(300.0, self.scrapebikes, [conn, cur])
         biketimer.daemon = True
         biketimer.start()
 
     def scrapetrips(self, starttime, nexttime, conn, cur):
         print('Strarting trips scrape at {}'.format(str(datetime.datetime.now())))
-        payload = {'format': 'json', 'end_time_gte': starttime, 'fields': 'start_time,end_time,start_latitude,start_longitude,end_latitude,end_longitude', 'authorization': self.apikey}
+        payload = {'format': 'json', 'end_time_gte': starttime, 'fields': 'device_id,start_time,end_time,start_latitude,start_longitude,end_latitude,end_longitude', 'authorization': self.apikey}
         req = requests.get('https://nodes.geoservices.tamu.edu/api/veoride/trips/', params=payload)
         print('Finished trips scrape at {}'.format(str(datetime.datetime.now())))
         if not req.json():
@@ -119,7 +133,7 @@ class Scraper:
         print('Starting trips insert')
         data = request.json()
         columns = data[0].keys()
-        query = "INSERT INTO trips (\"{}\") VALUES %s".format('","'.join(columns))
+        query = "INSERT INTO trips2 (\"{}\") VALUES %s".format('","'.join(columns))
         values = [[value for value in trip.values()] for trip in data]
         execute_values(cur, query, values)
         conn.commit()
