@@ -19,7 +19,6 @@ app.config['JSON_SORT_KEYS'] = False
 
 db = SQLAlchemy(app)
 ma = Marshmallow(app)
-lastdeploy = 1569450623
 
 class Bike(db.Model):
     __tablename__ = 'bikes'
